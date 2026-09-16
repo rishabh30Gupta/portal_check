@@ -37,7 +37,11 @@ jobs:
       # The script reads state at startup and writes it back before exiting.
       - name: Run portal health check
         env:
+          STAGING_URL:        ${{ secrets.STAGING_URL }}
+          DEV_URL:            ${{ secrets.DEV_URL }}
+          EMAIL_SENDER:       ${{ secrets.EMAIL_SENDER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_TO:           ${{ secrets.EMAIL_TO }}
           GIST_TOKEN:         ${{ secrets.GIST_TOKEN }}
           GIST_ID:            ${{ secrets.GIST_ID }}
         run: python check_portals.py

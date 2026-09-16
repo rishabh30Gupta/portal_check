@@ -25,9 +25,9 @@ load_dotenv()
 # ── Email config ───────────────────────────────────────────────────────────────
 SMTP_HOST      = "smtp.gmail.com"
 SMTP_PORT      = 587
-EMAIL_SENDER   = "hellolucifer007@gmail.com"
+EMAIL_SENDER   = os.getenv("EMAIL_SENDER")    # e.g. hellolucifer007@gmail.com
 EMAIL_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
-EMAIL_TO       = "rishabh.gupta@vetty.co"
+EMAIL_TO       = os.getenv("EMAIL_TO")        # e.g. rishabh.gupta@vetty.co
 
 # ── Gist config ────────────────────────────────────────────────────────────────
 # GIST_TOKEN : fine-grained PAT with "Gists" read+write scope
@@ -39,14 +39,16 @@ GIST_FILENAME  = "portal_state.json"   # the file inside the Gist
 GIST_API_BASE  = "https://api.github.com"
 
 # ── Portals to check ───────────────────────────────────────────────────────────
+# URLs are read from env vars so they never need to be hardcoded.
+# STAGING_URL and DEV_URL must be set in .env or GitHub Secrets.
 PORTALS = [
     {
         "name": "Staging Portal",
-        "url":  "https://stgclient.vetty.co/client/login",
+        "url":  os.getenv("STAGING_URL", "").strip(),
     },
     {
         "name": "Dev Portal",
-        "url":  "https://devapplicant.vetty.co/",
+        "url":  os.getenv("DEV_URL", "").strip(),
     },
 ]
 
@@ -149,6 +151,9 @@ def send_email(subject: str, html_body: str) -> None:
     if not EMAIL_PASSWORD:
         print("  [WARN] GMAIL_APP_PASSWORD not set — skipping email.")
         return
+    if not EMAIL_SENDER or not EMAIL_TO:
+        print("  [WARN] EMAIL_SENDER or EMAIL_TO not set — skipping email.")
+        return
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -234,6 +239,13 @@ def check_portal(portal: dict) -> tuple[bool, str]:
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    # Validate required env vars up front
+    missing = [p["name"] for p in PORTALS if not p["url"]]
+    if missing:
+        print(f"[ERROR] Missing URL env vars for: {', '.join(missing)}")
+        print("        Set STAGING_URL and DEV_URL in .env or GitHub Secrets.")
+        sys.exit(2)
+
     print("=== Portal Health Check ===")
     print(f"    {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
 
