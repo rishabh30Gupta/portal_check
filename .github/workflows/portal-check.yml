@@ -1,0 +1,44 @@
+name: Portal Health Check
+
+on:
+  schedule:
+    # ┌─ min  ┌─ hour  ┌─ day  ┌─ month  ┌─ weekday
+    # Every 10 minutes — free & unlimited on a PUBLIC repo
+    - cron: "*/10 * * * *"
+    #
+    # Switch to every 30 minutes if the repo is PRIVATE
+    # (~1,440 min/month — under the 2,000 free-tier limit)
+    # - cron: "*/30 * * * *"
+
+  # Allows a manual one-off run from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check Portals
+    runs-on: ubuntu-latest
+    timeout-minutes: 5    # hard cap — prevents runaway jobs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install requests python-dotenv
+
+      # State is persisted in a GitHub Gist between runs — no cache needed.
+      # The script reads state at startup and writes it back before exiting.
+      - name: Run portal health check
+        env:
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GIST_TOKEN:         ${{ secrets.GIST_TOKEN }}
+          GIST_ID:            ${{ secrets.GIST_ID }}
+        run: python check_portals.py
+        # Exits with code 1 when a portal is DOWN →
+        # the job is marked as failed in the Actions UI (red ✗)
