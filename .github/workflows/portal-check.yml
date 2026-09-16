@@ -26,11 +26,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
-        run: pip install requests python-dotenv
+        run: pip install -r requirements.txt
 
       # State is persisted in a GitHub Gist between runs — no cache needed.
       # The script reads state at startup and writes it back before exiting.
