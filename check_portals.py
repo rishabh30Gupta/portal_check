@@ -39,16 +39,12 @@ GIST_FILENAME  = "portal_state.json"   # the file inside the Gist
 GIST_API_BASE  = "https://api.github.com"
 
 # ── Portals to check ───────────────────────────────────────────────────────────
-# URLs are read from env vars so they never need to be hardcoded.
-# STAGING_URL and DEV_URL must be set in .env or GitHub Secrets.
+# URL is read from env var so it never needs to be hardcoded.
+# STAGING_URL must be set in .env or GitHub Secrets.
 PORTALS = [
     {
         "name": "Staging Portal",
         "url":  os.getenv("STAGING_URL", "").strip(),
-    },
-    {
-        "name": "Dev Portal",
-        "url":  os.getenv("DEV_URL", "").strip(),
     },
 ]
 
@@ -243,7 +239,7 @@ def main() -> None:
     missing = [p["name"] for p in PORTALS if not p["url"]]
     if missing:
         print(f"[ERROR] Missing URL env vars for: {', '.join(missing)}")
-        print("        Set STAGING_URL and DEV_URL in .env or GitHub Secrets.")
+        print("        Set STAGING_URL in .env or GitHub Secrets.")
         sys.exit(2)
 
     print("=== Portal Health Check ===")
